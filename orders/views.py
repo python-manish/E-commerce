@@ -1,31 +1,31 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
-from .models import Cart,CartItem,Customer
+from .models import Cart,CartItems,Customer
 from .models import VendorProducts
 from django.contrib import messages
-# from .payment import RazorPayPayment
+from .payment import RazorPayPayment
 from django.views.decorators.csrf import csrf_exempt
 
 
-# @login_required(login_url="/accounts/login/")
-# def get_cart(request):
-#     cart = None
-#     payment_info = {}
-#     try:
+@login_required(login_url="/accounts/login/")
+def get_cart(request):
+    cart = None
+    payment_info = {}
+    try:
         
-#         cart = Cart.objects.get(customer = request.user.customer, is_paid = False)
-#         amount = cart.getCartTotal()
-#         receipt = cart.customer.username
-#         payment = RazorPayPayment("INR")
-#         payment_info = payment.processPayment(amount * 100, receipt)
-#         cart.order_id = payment_info['id']
-#         cart.save()
-#         print(payment_info)
-#     except Exception as e:
-#         print(e)
+        cart = Cart.objects.get(customer = request.user.customer, is_paid = False)
+        amount = cart.getCartTotal()
+        receipt = cart.customer.username
+        payment = RazorPayPayment("INR")
+        payment_info = payment.processPayment(amount * 100, receipt)
+        cart.order_id = payment_info['id']
+        cart.save()
+        print(payment_info)
+    except Exception as e:
+        print(e)
 
-#     return render( request,'cart.html', context = {'cart' : cart, 'payment_info' : payment_info})
+    return render( request,'cart.html', context = {'cart' : cart, 'payment_info' : payment_info})
 
 
 @login_required(login_url="/accounts/login/")
@@ -34,7 +34,7 @@ def add_to_cart(request):
         customer = Customer.objects.get(user_ptr=request.user.id)
         product = request.GET.get('product_id')
         cart , _ = Cart.objects.get_or_create(customer = customer, is_paid=False)
-        cart_item , _  = CartItem.objects.get_or_create(cart = cart ,
+        cart_item , _  = CartItems.objects.get_or_create(cart = cart ,
                                                           product = VendorProducts.objects.get(id = product))
         cart_item.quantity += 1
         cart_item.save()
@@ -52,7 +52,7 @@ def remove_to_cart(request):
         quantity = request.GET.get('quantity')
 
         cart , _ = Cart.objects.get_or_create(customer = customer, is_paid=False)
-        cart_item   = CartItem.objects.filter(cart = cart ,product = VendorProducts.objects.get(id = product))
+        cart_item   = CartItems.objects.filter(cart = cart ,product = VendorProducts.objects.get(id = product))
 
         if cart_item.exists():
             cart_item = cart_item[0]
@@ -74,18 +74,18 @@ def remove_to_cart(request):
     
 
 
-# @csrf_exempt
-# def payment_success(request):
-#     try:
-#         razorpay_payment_id  = request.POST.get('razorpay_payment_id')
-#         razorpay_order_id = request.POST.get('razorpay_order_id')
-#         razorpay_signature = request.POST.get('razorpay_signature')
-#         cart = Cart.objects.get(order_id = razorpay_order_id)
-#         cart.payment_id = razorpay_payment_id
-#         cart.payment_signature = razorpay_signature
-#         cart.is_paid = True
-#         cart.convertToOrder()
-#         cart.save()
-#         return render(request, "success.html")
-#     except Exception as e:
-#         return redirect('/')
+@csrf_exempt
+def payment_success(request):
+    try:
+        razorpay_payment_id  = request.POST.get('razorpay_payment_id')
+        razorpay_order_id = request.POST.get('razorpay_order_id')
+        razorpay_signature = request.POST.get('razorpay_signature')
+        cart = Cart.objects.get(order_id = razorpay_order_id)
+        cart.payment_id = razorpay_payment_id
+        cart.payment_signature = razorpay_signature
+        cart.is_paid = True
+        cart.convertToOrder()
+        cart.save()
+        return render(request, "success.html")
+    except Exception as e:
+        return redirect('/')

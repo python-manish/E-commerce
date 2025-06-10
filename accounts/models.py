@@ -5,8 +5,8 @@ class Customer(User):
     profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
 
     def getCartItemCount(self):
-        from orders.models import CartItem
-        return CartItem.objects.filter(cart__customer = self, cart__is_paid = False).count()
+        from orders.models import CartItems
+        return CartItems.objects.filter(cart__customer = self, cart__is_paid = False).count()
 
 
 class Shopkeeper(User):
