@@ -13,7 +13,6 @@ def generateOrderId(index):
     return f"OD{year}{month}{day}{index.zfill(5)}"
 
 
-
 def generateOrderPdf(instance,data):
     dynamic_directory_name = f"public/static/pdfs/{instance.order_id}.pdf"
     template_name = "invoice"
@@ -32,8 +31,6 @@ def generateOrderPdf(instance,data):
     exact_file_path = f"{settings.BASE_DIR}/{dynamic_directory_name}"
     config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
     pdfkit.from_string(content, exact_file_path, options = options, configuration=config)
-
-
 
 
 def getImageBase64(image_url):
