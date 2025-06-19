@@ -102,5 +102,5 @@ class OrderItems(models.Model):
     price = models.FloatField()
 
     def getBase64Image(self):
-        image_path = f"http://127.0.0.1:8000/{self.product.product.getFirstImage()}"
+        image_path = f"http://127.0.0.1:8000/{self.products.products.getFirstImage()}"
         print(image_path)

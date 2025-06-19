@@ -72,15 +72,23 @@ def remove_to_cart(request):
         messages.error(request, 'Invalid Product ID')
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
     
-
-
 @csrf_exempt
 def payment_success(request):
     try:
-        razorpay_payment_id  = request.POST.get('razorpay_payment_id')
+        razorpay_payment_id = request.POST.get('razorpay_payment_id')
         razorpay_order_id = request.POST.get('razorpay_order_id')
         razorpay_signature = request.POST.get('razorpay_signature')
-        cart = Cart.objects.get(order_id = razorpay_order_id)
+
+        if not (razorpay_payment_id and razorpay_order_id and razorpay_signature):
+            messages.error(request, "Payment details are incomplete.")
+            return redirect('/')
+
+        try:
+            cart = Cart.objects.get(order_id=razorpay_order_id)
+        except Cart.DoesNotExist:
+            messages.error(request, "Cart not found for this order.")
+            return redirect('/')
+
         cart.payment_id = razorpay_payment_id
         cart.payment_signature = razorpay_signature
         cart.is_paid = True
@@ -88,4 +96,6 @@ def payment_success(request):
         cart.save()
         return render(request, "success.html")
     except Exception as e:
+        print(e)
+        messages.error(request, "An error occurred while processing payment.")
         return redirect('/')
